@@ -33,7 +33,17 @@
                 </table>
             </div>
             <div class="col-xs-12 col-sm-6">
-                <!-- add checkout form here -->
+                <form action="" method="POST">
+                    <script
+                            src="https://checkout.stripe.com/checkout.js" class="stripe-button"
+                            data-key="pk_test_XPeh0VYKhcag37Ou3sphG68n00xHIhoMBf"
+                            data-amount="{{ cart.total * 100 }}"
+                            data-name="Dollar Shear Club"
+                            data-description="Widget"
+                            data-image="{{ asset('images/logo.png') }}"
+                            data-locale="auto">
+                    </script>
+                </form>
             </div>
         </div>
     </div>
