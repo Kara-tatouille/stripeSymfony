@@ -33,13 +33,30 @@ class OrderController extends BaseController
         $products = $this->get('shopping_cart')->getProducts();
 
         if ($request->isMethod('POST')) {
-            dump($request->get('stripeToken'));
+            $token = $request->get('stripeToken');
+
+            \Stripe\Stripe::setApiKey("sk_test_aUdDODqvSoPrPMVkobi6FKh2005laR5Cxb");
+
+            \Stripe\Charge::create(
+                [
+                    "amount" => $this->get('shopping_cart')->getTotal() * 100,
+                    "currency" => "usd",
+                    "source" => $token,
+                    "description" => "First test charge",
+                ]
+            );
+
+            $this->get('shopping_cart')->emptyCart();
+            $this->addFlash('success', 'Order complete!');
+
+            return $this->redirectToRoute('homepage');
         }
 
-        return $this->render('order/checkout.html.twig', array(
+        return $this->render(
+            'order/checkout.html.twig', array(
             'products' => $products,
-            'cart' => $this->get('shopping_cart')
-        ));
-
+            'cart' => $this->get('shopping_cart'),
+        )
+        );
     }
 }
