@@ -4,6 +4,8 @@ namespace AppBundle;
 
 use AppBundle\Entity\User;
 use Doctrine\ORM\EntityManager;
+use Stripe\Exception\ApiErrorException;
+use Stripe\Invoice;
 
 class StripeClient
 {
@@ -52,9 +54,16 @@ class StripeClient
         );
     }
 
+    /**
+     * @param User $user
+     * @param bool $payImmediately
+     *
+     * @return Invoice
+     * @throws ApiErrorException
+     */
     public function createInvoice(User $user, $payImmediately = true)
     {
-        $invoice = \Stripe\Invoice::create(
+        $invoice = Invoice::create(
             [
                 'customer' => $user->getStripeCustomerId(),
             ]
