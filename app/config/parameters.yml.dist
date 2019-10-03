@@ -20,3 +20,5 @@ parameters:
 
     stripe_secret_key: sk_XXXX_XXXXXXXX
     stripe_public_key: pk_XXXX_XXXXXXXX
+
+    secure_channel: http
