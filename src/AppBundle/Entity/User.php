@@ -18,8 +18,31 @@ class User extends BaseUser
      */
     protected $id;
 
+    /**
+     * @ORM\Column(type="string", unique=true, nullable=true)
+     */
+    private $stripeCustomerId;
+
     public function getId()
     {
         return $this->id;
     }
+
+    /**
+     * @return mixed
+     */
+    public function getStripeCustomerId()
+    {
+        return $this->stripeCustomerId;
+    }
+
+    /**
+     * @param mixed $stripeCustomerId
+     */
+    public function setStripeCustomerId($stripeCustomerId)
+    {
+        $this->stripeCustomerId = $stripeCustomerId;
+    }
+
+
 }
