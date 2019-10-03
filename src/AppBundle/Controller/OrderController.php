@@ -54,18 +54,28 @@ class OrderController extends BaseController
                 $em->flush();
             } else {
                 $customer = \Stripe\Customer::retrieve($user->getStripeCustomerId());
-                $customer->sources = $token;
+                $customer->source = $token; // IMPORTANT! do not use $customer->sources as it does not work, use $customer->source.
                 $customer->save(); // Save the new source to Stripe.com
             }
 
-            \Stripe\Charge::create(
+            foreach ($this->get('shopping_cart')->getProducts() as $product) {
+                \Stripe\InvoiceItem::create(
+                    [
+                        "amount" => $product->getPrice() * 100,
+                        "currency" => "usd",
+                        "customer" => $user->getStripeCustomerId(), // If you don't have a customer, replace with "source" => $token
+                        "description" => $product->getName(),
+                    ]
+                );
+
+            }
+
+            $invoice = \Stripe\Invoice::create(
                 [
-                    "amount" => $this->get('shopping_cart')->getTotal() * 100,
-                    "currency" => "usd",
-                    "customer" => $user->getStripeCustomerId(), // If you don't have a customer, replace with "source" => $token
-                    "description" => "First test charge",
+                    'customer' => $user->getStripeCustomerId(),
                 ]
             );
+            $invoice->pay();
 
             $this->get('shopping_cart')->emptyCart();
             $this->addFlash('success', 'Order complete!');
@@ -75,10 +85,10 @@ class OrderController extends BaseController
 
         return $this->render(
             'order/checkout.html.twig', array(
-            'products' => $products,
-            'cart' => $this->get('shopping_cart'),
-            'stripe_public_key' => $this->getParameter('stripe_public_key'),
-        )
+                'products' => $products,
+                'cart' => $this->get('shopping_cart'),
+                'stripe_public_key' => $this->getParameter('stripe_public_key'),
+            )
         );
     }
 }
