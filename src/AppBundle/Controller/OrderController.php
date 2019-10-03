@@ -36,46 +36,21 @@ class OrderController extends BaseController
         if ($request->isMethod('POST')) {
             $token = $request->get('stripeToken');
 
-            \Stripe\Stripe::setApiKey($this->getParameter('stripe_secret_key'));
 
             /** @var User $user */
             $user = $this->getUser();
+            $stripeClient = $this->get('stripe_client');
             if (!$user->getStripeCustomerId()) {
-                $customer = \Stripe\Customer::create(
-                    [
-                        'email' => $user->getEmail(),
-                        "source" => $token, // obtained with Stripe.js
-                    ]
-                );
-
-                $user->setStripeCustomerId($customer->id);
-                $em = $this->getDoctrine()->getEntityManager();
-                $em->persist($user);
-                $em->flush();
+                $stripeClient->createCustomer($user, $token);
             } else {
-                $customer = \Stripe\Customer::retrieve($user->getStripeCustomerId());
-                $customer->source = $token; // IMPORTANT! do not use $customer->sources as it does not work, use $customer->source.
-                $customer->save(); // Save the new source to Stripe.com
+                $stripeClient->updateCustomerCard($user, $token);
             }
 
             foreach ($this->get('shopping_cart')->getProducts() as $product) {
-                \Stripe\InvoiceItem::create(
-                    [
-                        "amount" => $product->getPrice() * 100,
-                        "currency" => "usd",
-                        "customer" => $user->getStripeCustomerId(), // If you don't have a customer, replace with "source" => $token
-                        "description" => $product->getName(),
-                    ]
-                );
-
+                $stripeClient->createInvoiceItem($product->getPrice() * 100, $user, $product->getName());
             }
 
-            $invoice = \Stripe\Invoice::create(
-                [
-                    'customer' => $user->getStripeCustomerId(),
-                ]
-            );
-            $invoice->pay();
+            $stripeClient->createInvoice($user, true);
 
             $this->get('shopping_cart')->emptyCart();
             $this->addFlash('success', 'Order complete!');
