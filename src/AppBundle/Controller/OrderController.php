@@ -35,7 +35,7 @@ class OrderController extends BaseController
         if ($request->isMethod('POST')) {
             $token = $request->get('stripeToken');
 
-            \Stripe\Stripe::setApiKey("sk_test_aUdDODqvSoPrPMVkobi6FKh2005laR5Cxb");
+            \Stripe\Stripe::setApiKey($this->getParameter('stripe_secret_key'));
 
             \Stripe\Charge::create(
                 [
@@ -56,6 +56,7 @@ class OrderController extends BaseController
             'order/checkout.html.twig', array(
             'products' => $products,
             'cart' => $this->get('shopping_cart'),
+            'stripe_public_key' => $this->getParameter('stripe_public_key'),
         )
         );
     }
