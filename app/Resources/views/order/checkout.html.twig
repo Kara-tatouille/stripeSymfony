@@ -7,46 +7,79 @@
 
     <script type="text/javascript">
         Stripe.setPublishableKey('{{ stripe_public_key }}');
+
+        $(function () {
+            var $form = $('.js-checkout-form');
+            $form.submit(function (event) {
+                event.preventDefault();
+
+                // Disable the submit button to prevent repeated clicks:
+                $form.find('.js-submit-button').prop('disabled', true);
+                // Request a token from Stripe:
+                Stripe.card.createToken($form, stripeResponseHandler);
+                // Prevent the form from being submitted:
+                return false;
+            });
+        });
+
+        function stripeResponseHandler(status, response) {
+            // Grab the form:
+            var $form = $('.js-checkout-form');
+            if (response.error) { // Problem!
+                // Show the errors on the form:
+                $form.find('.js-checkout-error').text(response.error.message).removeClass('hidden');
+                $form.find('.js-submit-button').prop('disabled', false); // Re-enable submission
+            } else { // Token was created!
+                // Get the token ID:
+                $form.find('.js-checkout-error').addClass('hidden');
+
+                var token = response.id;
+                // Insert the token ID into the form so it gets submitted to the server:
+                $form.append($('<input type="hidden" name="stripeToken">').val(token));
+                // Submit the form:
+                $form.get(0).submit();
+            }
+        }
     </script>
 {% endblock %}
 
 {% block title %}SSC Checkout{% endblock %}
 
 {% block body %}
-<div class="nav-space-checkout">
-    <div class="container">
-        <div class="row">
-            <div class="col-xs-12">
-                <h1 class="checkout-header">Checkout</h1>
-            </div>
-            <div class="col-xs-12 col-sm-6">
-                <table class="table table-bordered">
-                    <thead>
+    <div class="nav-space-checkout">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12">
+                    <h1 class="checkout-header">Checkout</h1>
+                </div>
+                <div class="col-xs-12 col-sm-6">
+                    <table class="table table-bordered">
+                        <thead>
                         <tr>
                             <th class="col-xs-6 active">Product</th>
                             <th class="col-xs-3 active text-center">Price</th>
                         </tr>
-                    </thead>
-                    <tbody>
+                        </thead>
+                        <tbody>
                         {% for product in products %}
                             <tr>
                                 <th class="col-xs-6 checkout-product-name">{{ product.name }}</th>
                                 <td class="col-xs-3">${{ product.price }}</td>
                             </tr>
                         {% endfor %}
-                    </tbody>
-                    <tfoot>
+                        </tbody>
+                        <tfoot>
                         <tr>
                             <th class="col-xs-6 info">Total</th>
                             <td class="col-xs-3 info checkout-total">${{ cart.total }}</td>
                         </tr>
-                    </tfoot>
-                </table>
-            </div>
-            <div class="col-xs-12 col-sm-6">
-                {{ include('order/_cardForm.html.twig') }}
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="col-xs-12 col-sm-6">
+                    {{ include('order/_cardForm.html.twig') }}
+                </div>
             </div>
         </div>
     </div>
-</div>
 {% endblock %}
