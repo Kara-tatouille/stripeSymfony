@@ -44,6 +44,10 @@ Then, load the site at:
 
     http://localhost:8000
 
+The accounts for connection is:
+
+    Email: sleek_sheep1@example.com
+    Password: breakingbaad
 
 [stripe_tuts]: https://knpuniversity.com/screencast/stripe
 [composer]: https://getcomposer.org/
